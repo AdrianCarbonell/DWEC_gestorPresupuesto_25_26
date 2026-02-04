@@ -104,36 +104,66 @@ function mostrarGastoWeb(idContenedor, datosGasto) {
 
 
 function mostrarGastosAgrupadosWeb(idElemento, agrup, periodo) {
-    let contenedor = document.getElementById(idElemento);
-    if (!contenedor || !agrup) return;
+    // Obtener la capa donde se muestran los datos agrupados
+    let divP = document.getElementById(idElemento);
+    if (!divP || !agrup) return;
 
-    let divAgrupacion = document.createElement("div");
-    divAgrupacion.className = "agrupacion";
-  
-    let h1Periodo = document.createElement("h1");
-    h1Periodo.textContent = `Gastos agrupados por ${periodo}`;
-    divAgrupacion.appendChild(h1Periodo);
+    // Borrar contenido previo para evitar duplicados
+    divP.innerHTML = "";
 
-    for (let clave of Object.keys(agrup)) {
-      let valor = agrup[clave];
+    // Estilos
+    divP.style.width = "33%";
+    divP.style.display = "inline-block";
 
-      let divAgrupacionDato = document.createElement("div");
-      divAgrupacionDato.className = "agrupacion-dato";
+    // Crear elemento canvas para la gráfica
+    let chart = document.createElement("canvas");
 
-      let spanClave = document.createElement("span");
-      spanClave.className = "agrupacion-dato-clave";
-      spanClave.textContent = clave;
-
-      let spanValor = document.createElement("span");
-      spanValor.className = "agrupacion-dato-valor";
-      spanValor.textContent = valor;
-
-      divAgrupacionDato.append(spanClave, spanValor);
-      divAgrupacion.appendChild(divAgrupacionDato);
+    // Determinar unidad temporal según el período
+    let unit = "";
+    switch (periodo) {
+        case "anyo":
+            unit = "year";
+            break;
+        case "mes":
+            unit = "month";
+            break;
+        case "dia":
+        default:
+            unit = "day";
+            break;
     }
 
-    contenedor.appendChild(divAgrupacion);
-  }
+    // Crear la gráfica con Chart.js
+    const myChart = new Chart(chart.getContext("2d"), {
+        type: "bar",
+        data: {
+            datasets: [
+                {
+                    label: `Gastos por ${periodo}`,
+                    backgroundColor: "#555555",
+                    data: agrup
+                }
+            ]
+        },
+        options: {
+            scales: {
+                x: {
+                    type: "time",
+                    time: {
+                        unit: unit
+                    }
+                },
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Añadir la gráfica al contenedor
+    divP.append(chart);
+}
+
 
 
  function repintar() {
@@ -157,6 +187,14 @@ function mostrarGastosAgrupadosWeb(idElemento, agrup, periodo) {
     
     mostrarGastoWeb("listado-gastos-completo", gasto);
   }
+
+  document.getElementById("agrupacion-dia").innerHTML = "";
+    mostrarGastosAgrupadosWeb("agrupacion-dia", gP.agruparGastos("dia"), "día")
+    document.getElementById("agrupacion-mes").innerHTML = "";
+    mostrarGastosAgrupadosWeb("agrupacion-mes", gP.agruparGastos("mes"), "mes")
+    document.getElementById("agrupacion-anyo").innerHTML = "";
+    mostrarGastosAgrupadosWeb("agrupacion-anyo", gP.agruparGastos("anyo"), "año")
+
 }
 
  let btnActualizar = document.getElementById("actualizarpresupuesto");
@@ -440,7 +478,9 @@ function cargarGastosWeb() {
 let btnCargar = document.getElementById("cargar-gastos");
 btnCargar.addEventListener("click", cargarGastosWeb);
 
+function cargarGastosApi(){
 
+}
 
 
 
@@ -457,7 +497,9 @@ export{
     nuevoGastoWebFormulario,
     filtrarGastosWeb,
     guardarGastosWeb,
-    cargarGastosWeb
+    cargarGastosWeb,
+    cargarGastosApi
+    
 }
 
 import * as gP from './gestionPresupuesto.js';
